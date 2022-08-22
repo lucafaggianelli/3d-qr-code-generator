@@ -179,7 +179,7 @@ const getWifiEasyConnectUri = (data) => {
   ]
 
   if (data.get('security', 'none') !== 'none') {
-    parts.push(`WIFI:T:${data.get('security')}`)
+    parts.push(`T:${data.get('security')}`)
     parts.push(`P:${data.get('password')}`)
   }
 
@@ -187,7 +187,7 @@ const getWifiEasyConnectUri = (data) => {
     parts.push(`H:true`)
   }
 
-  return parts.join(';')
+  return `WIFI:${parts.join(';')}`
 }
 
 const main = () => {
