@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <title>Page Title</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0qQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="TrackballControls.js"></script>
+  <script src="STLExporter.js"></script>
+  <script src='qrcodegen-v1.8.0-es6.js'></script>
+</head>
+<body>
+  <!-- <canvas id="qr-code"></canvas> -->
+  <form id="main-navbar">
+    <input name="ssid" placeholder="SSID" />
+
+    <select name="security">
+      <option value="none">None</option>
+      <option value="WPA" selected>WPA/WPA2</option>
+      <option value="WEP">WEP</option>
+    </select>
+
+    <input name="password" placeholder="Password" />
+
+    <label>
+      <input name="hidden" type="checkbox" />
+      Hidden
+    </label>
+
+    <button type="submit">
+      Generate QR code
+    </button>
+
+    <button id="export">Save as STL</button>
+  </form>
+
+  <script src='main.js'></script>
+</body>
+</html>

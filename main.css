@@ -1,0 +1,12 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+}
+
+#main-navbar {
+  position: fixed;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 2px 8px;
+}
