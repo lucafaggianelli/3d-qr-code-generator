@@ -1,4 +1,4 @@
-name: Deploy app to Pages
+name: Build and Deploy app to Pages
 
 on:
   # Runs on pushes targeting the default branch
@@ -27,6 +27,7 @@ jobs:
       - run: yarn build
 
   deploy:
+    needs: build
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
