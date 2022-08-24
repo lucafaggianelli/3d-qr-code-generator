@@ -1,9 +1,16 @@
+import * as THREE from 'three'
+import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls'
+import { STLExporter } from 'three/examples/jsm/exporters/STLExporter'
+
+import './main.css'
+import qrcodegen from './qrcodegen'
+
 const barcodeSizeMm = 80
 const baseThicknessMm = 5
 const qrThicknessMm = 2
 const qrBorderMm = 5
 
-const generateQrCode = (qrContent) => {
+const generateQrCode = (qrContent: string) => {
   const errCorLvl = qrcodegen.QrCode.Ecc.LOW
 
   return qrcodegen.QrCode.encodeText(qrContent, errCorLvl)
@@ -13,7 +20,7 @@ const generateQrCode = (qrContent) => {
 // canvas element. The canvas's width and height is resized to (qr.size + border * 2) * scale.
 // The drawn image is purely dark and light, and fully opaque.
 // The scale must be a positive integer and the border must be a non-negative integer.
-function drawCanvas(qr, scale, border, lightColor, darkColor, canvas) {
+const drawCanvas = (qr: any, scale: number, border: number, lightColor: string, darkColor: string, canvas: HTMLCanvasElement) => {
   if (scale <= 0 || border < 0)
     throw new RangeError("Value out of range");
 
@@ -21,7 +28,11 @@ function drawCanvas(qr, scale, border, lightColor, darkColor, canvas) {
   canvas.width = width;
   canvas.height = width;
 
-  let ctx = canvas.getContext("2d");
+  let ctx = canvas.getContext("2d")
+
+  if (!ctx) {
+    throw new Error("Canvas has no 2D context")
+  }
 
   for (let y = -border; y < qr.size + border; y++) {
     for (let x = -border; x < qr.size + border; x++) {
@@ -32,6 +43,17 @@ function drawCanvas(qr, scale, border, lightColor, darkColor, canvas) {
 }
 
 class ThreeDScene {
+  // Main scene infrastructure
+  scene: THREE.Scene
+  camera: THREE.PerspectiveCamera
+  renderer: THREE.Renderer
+  controls: TrackballControls
+
+  /**
+   * Group containing all the objects forming a QR code
+   */
+  qrGroup: THREE.Group
+
   constructor () {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xEEEEEE);
@@ -49,12 +71,13 @@ class ThreeDScene {
     this.camera.position.z = barcodeSizeMm / 1.2
     this.camera.position.y = -barcodeSizeMm / 1.5
 
-    this.qrGroup = new THREE.Group()
+    this.controls = new TrackballControls( this.camera, this.renderer.domElement )
+    this.setupControls()
 
-    this.createControls()
+    this.qrGroup = new THREE.Group()
   }
 
-  drawBarcodeModule (x, y, size, thickness) {
+  drawBarcodeModule (x: number, y: number, size: number, thickness: number) {
     const geometry = new THREE.BoxGeometry(size, size, thickness)
 
     const material = new THREE.MeshPhongMaterial({ color: 0x404040 })
@@ -64,17 +87,7 @@ class ThreeDScene {
     this.qrGroup.add(cube)
   }
 
-  drawBarcodeBorder (side, border, thickness) {
-    const geometry = new THREE.BoxGeometry(side, border, thickness)
-
-    const material = new THREE.MeshBasicMaterial({ color: 0xffffff })
-    const cube = new THREE.Mesh(geometry, material)
-    cube.position.set(x * size, -y * size, size, 0)
-
-    this.qrGroup.add(cube)
-  }
-
-  drawBarcodeBackground (height, width, thickness) {
+  drawBarcodeBackground (height: number, width: number, thickness: number) {
     const geometry = new THREE.BoxGeometry(height, width, thickness)
 
     const material = new THREE.MeshPhongMaterial({ color: 0xffffff })
@@ -84,7 +97,7 @@ class ThreeDScene {
     this.qrGroup.add(cube)
   }
 
-  drawBarcode (qr, border) {
+  drawBarcode (qr: any, border: number) {
     if (border <= 0) {
       throw new RangeError("Value out of range")
     }
@@ -117,21 +130,17 @@ class ThreeDScene {
     )
   }
 
-  createControls() {
-    this.controls = new THREE.TrackballControls( this.camera, this.renderer.domElement );
-
+  setupControls () {
     this.controls.rotateSpeed = 10;
     this.controls.zoomSpeed = 4;
     this.controls.panSpeed = 0.8;
-
-    this.controls.keys = [ 'KeyA', 'KeyS', 'KeyD' ];
   }
 
   onWindowResize() {
     const aspect = window.innerWidth / window.innerHeight;
 
-    this.camera.aspect = aspect;
-    this.camera.updateProjectionMatrix();
+    this.camera.aspect = aspect
+    this.camera.updateProjectionMatrix()
 
     this.renderer.setSize( window.innerWidth, window.innerHeight );
 
@@ -139,29 +148,29 @@ class ThreeDScene {
   }
 
   exportAsSTL () {
-    const exporter = new THREE.STLExporter()
+    const exporter = new STLExporter()
 
     const result = exporter.parse( this.scene, { binary: true } )
-		this.saveArrayBuffer( result, 'QR Code.stl' )
+		this.saveArrayBuffer(result, 'QR Code.stl')
   }
 
-  save( blob, filename ) {
+  save(blob: Blob, filename: string) {
     const link = document.createElement( 'a' )
     link.style.display = 'none'
-    document.body.appendChild( link )
+    document.body.appendChild(link)
 
-    link.href = URL.createObjectURL( blob )
+    link.href = URL.createObjectURL(blob)
     link.download = filename
     link.click()
 
     link.remove()
   }
 
-  saveString( text, filename ) {
+  saveString(text: string, filename: string) {
     this.save( new Blob( [ text ], { type: 'text/plain' } ), filename )
   }
 
-  saveArrayBuffer( buffer, filename ) {
+  saveArrayBuffer(buffer: string, filename: string) {
     this.save( new Blob( [ buffer ], { type: 'application/octet-stream' } ), filename )
   }
 
@@ -173,12 +182,12 @@ class ThreeDScene {
   }
 }
 
-const getWifiEasyConnectUri = (data) => {
+const getWifiEasyConnectUri = (data: FormData) => {
   const parts = [
     `S:${data.get('ssid')}`
   ]
 
-  if (data.get('security', 'none') !== 'none') {
+  if ((data.get('security') || 'none') !== 'none') {
     parts.push(`T:${data.get('security')}`)
     parts.push(`P:${data.get('password')}`)
   }
@@ -191,7 +200,7 @@ const getWifiEasyConnectUri = (data) => {
 }
 
 const main = () => {
-  const qr = generateQrCode()
+  const qr = generateQrCode("Hello World")
 
   // drawCanvas(qr, 10, 4, "#FFFFFF", "#000000", document.getElementById('qr-code'))
 
@@ -200,13 +209,13 @@ const main = () => {
   barcodeScene.drawBarcode(qr, qrBorderMm)
 
   const button = document.getElementById('export')
-  button.addEventListener('click', () => barcodeScene.exportAsSTL())
+  button!.addEventListener('click', () => barcodeScene.exportAsSTL())
 
   const form = document.getElementById('main-navbar')
-  form.addEventListener('submit', (event) => {
+  form!.addEventListener('submit', (event) => {
     event.preventDefault()
 
-    const data = new FormData(event.target)
+    const data = new FormData(form as HTMLFormElement)
 
     if (!data.has('security')) {
       data.set('security', 'WPA')
