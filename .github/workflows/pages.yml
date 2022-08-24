@@ -25,6 +25,10 @@ jobs:
           cache: 'yarn'
       - run: yarn install --frozen-lockfile
       - run: yarn build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: ./dist
 
   deploy:
     needs: build
@@ -33,6 +37,9 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
       - name: Setup Pages
         uses: actions/configure-pages@v1
       - name: Upload artifact
