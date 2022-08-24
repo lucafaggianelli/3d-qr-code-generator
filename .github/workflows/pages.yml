@@ -17,6 +17,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      BASE_URL: /3d-qr-code-generator/
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
